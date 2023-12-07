@@ -27,11 +27,11 @@ echo "export AWS_ACCESS_KEY='$AWS_ACCESS_KEY'" > env_vars.sh
 echo "export AWS_SECRET_ACCESS_KEY='$AWS_SECRET_ACCESS_KEY'" >> env_vars.sh
 echo "export AWS_SESSION_TOKEN='$AWS_SESSION_TOKEN'" >> env_vars.sh
 
-echo -e "Starting Assignment 2...\n"
+echo -e "Starting final assignment ...\n"
 echo -e "-----------\n"
 
 # Deploying the infrastructure
 echo -e "Deploying the infrastructure...\n"
 ./create_instances.sh
 
-echo -e "You successfully ended Assignment 2 :)"
+echo -e "You successfully ended your final assignment :)"

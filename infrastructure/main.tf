@@ -50,7 +50,7 @@ resource "aws_security_group" "mysql_sg" {
 }
 
 resource "aws_instance" "mysql_server" {
-  ami             = "ami-0230bd60aa48260c6"
+  ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.mysql_sg.name]
   user_data       = file("./mysql_server_user_data.sh")
@@ -61,7 +61,7 @@ resource "aws_instance" "mysql_server" {
 }
 
 resource "aws_instance" "mysql_cluster_manager" {
-  ami             = "ami-0230bd60aa48260c6"
+  ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.mysql_sg.name]
   user_data       = file("./mysql_manager_user_data.sh")
@@ -74,7 +74,7 @@ resource "aws_instance" "mysql_cluster_manager" {
 
 resource "aws_instance" "mysql_cluster_worker" {
   count           = 3
-  ami             = "ami-0230bd60aa48260c6"
+  ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.mysql_sg.name]
   user_data       = file("./mysql_worker_user_data.sh")
