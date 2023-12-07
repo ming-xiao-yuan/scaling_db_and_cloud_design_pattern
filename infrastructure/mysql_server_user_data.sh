@@ -6,8 +6,11 @@ sudo yum update -y
 # Install expect 
 sudo yum install expect -y
 
+
+# MySQL Server installation script
 {
     echo "Start MySQL Server installation at $(date)"
+
     # Download the MySQL 8.0 community release package from the official MySQL repository
     sudo wget https://dev.mysql.com/get/mysql80-community-release-el9-1.noarch.rpm 
 
@@ -28,7 +31,6 @@ sudo yum install expect -y
 
 
     # Automate the mysql_secure_installation script
-
     sudo expect -f - <<-EOF
     spawn mysql_secure_installation
 
@@ -71,16 +73,43 @@ EOF
     # Check the current status of the MySQL server service
     sudo systemctl status mysqld
 
-
-sudo expect -f - <<-EOF
-    spawn mysql -u root -p
-
-    expect "Enter password:"
-    send "Xinisboosted123!\r"
-
-    expect eof
-EOF
-
     echo "Finish MySQL Server installation at $(date)"
 
+    echo "Start Sakila installation at $(date)"
+
+    # Download and extract Sakila database
+    wget https://downloads.mysql.com/docs/sakila-db.tar.gz
+    tar -xvzf sakila-db.tar.gz
+    cd sakila-db
+
+    # Automate MySQL operations with expect
+    sudo expect -f - <<-EOF
+        spawn mysql -u root -p
+        expect "Enter password:"
+        send "Xinisboosted123!\r"
+        expect "mysql>"
+        
+        # Create Sakila database and import schema and data
+        send "CREATE DATABASE sakila;\r"
+        expect "mysql>"
+        send "USE sakila;\r"
+        expect "mysql>"
+        send "source sakila-schema.sql;\r"
+        expect "mysql>"
+        send "source sakila-data.sql;\r"
+        expect "mysql>"
+
+        send "USE sakila;\r"
+        expect "mysql>"
+
+        send "SHOW FULL TABLES;\r"
+
+        # Exit MySQL
+        send "exit\r"
+        expect eof
+EOF
+
+    echo "Finish Sakila installation at $(date)"
+
 } >> /var/log/process.log 2>&1
+
