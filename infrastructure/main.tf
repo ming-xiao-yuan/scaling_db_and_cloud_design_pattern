@@ -83,3 +83,14 @@ resource "aws_instance" "mysql_cluster_worker" {
     Name = "MySQL Cluster Worker ${count.index}"
   }
 }
+
+# Output Public IP of MySQL Cluster Manager
+output "mysql_cluster_manager_ip" {
+  value = aws_instance.mysql_cluster_manager.public_ip
+}
+
+# Output Public IPs of MySQL Cluster Workers
+output "mysql_cluster_worker_ips" {
+  value = [for instance in aws_instance.mysql_cluster_worker : instance.public_ip]
+}
+
