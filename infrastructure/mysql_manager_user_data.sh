@@ -50,38 +50,37 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     port=3306
     EOF'
 
-    # Display the Manager and Worker IPs for verification
-    echo "Manager IP: $MANAGER_IP"
-    echo "Worker IPs: ${WORKER_IPS[@]}"
+    # Source the IP addresses
+    source /tmp/ip_addresses.sh
 
-    # Prepare the content for the MySQL Cluster configuration file
-    CONFIG_INI_CONTENT="[ndb_mgmd]
-    hostname=$MANAGER_IP
-    datadir=/opt/mysqlcluster/deploy/ndb_data
-    nodeid=manager
+    # Define the path to your config.ini file
+    CONFIG_FILE="/opt/mysqlcluster/deploy/conf/config.ini"
 
-    [ndbd default]
-    noofreplicas=2
-    datadir=/opt/mysqlcluster/deploy/ndb_data
+    # Start writing to the config file
+    echo "[ndb_mgmd]" > $CONFIG_FILE
+    echo "hostname=${MANAGER_DNS}" >> $CONFIG_FILE
+    echo "datadir=/opt/mysqlcluster/deploy/ndb_data" >> $CONFIG_FILE
+    echo "nodeid=1" >> $CONFIG_FILE
+    echo "" >> $CONFIG_FILE
 
-    [ndbd]
-    hostname=${WORKER_IPS[0]}
-    nodeid=0
+    echo "[ndbd default]" >> $CONFIG_FILE
+    echo "noofreplicas=3" >> $CONFIG_FILE
+    echo "datadir=/opt/mysqlcluster/deploy/ndb_data" >> $CONFIG_FILE
+    echo "" >> $CONFIG_FILE
 
-    [ndbd]
-    hostname=${WORKER_IPS[1]}
-    nodeid=1
+    # Add each worker node
+    NODEID=2
+    for WORKER_DNS in "${WORKER_DNS[@]}"
+    do
+        echo "[ndbd]" >> $CONFIG_FILE
+        echo "hostname=${WORKER_DNS}" >> $CONFIG_FILE
+        echo "nodeid=${NODEID}" >> $CONFIG_FILE
+        echo "" >> $CONFIG_FILE
+        ((NODEID++))
+    done
 
-    [ndbd]
-    hostname=${WORKER_IPS[2]}
-    nodeid=2
-
-    [mysqld]
-    nodeid=50
-    "
-
-    # Write the MySQL Cluster configuration to the config.ini file
-    echo "$CONFIG_INI_CONTENT" | sudo tee /opt/mysqlcluster/deploy/conf/config.ini
+    echo "[mysqld]" >> $CONFIG_FILE
+    echo "nodeid=50" >> $CONFIG_FILE
 
     # Go back to MySQLC directory
     cd /opt/mysqlcluster/home/mysqlc
