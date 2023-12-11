@@ -4,9 +4,6 @@
 export DEBIAN_FRONTEND=noninteractive
 export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
-# Source the IP addresses from a separate file
-source ip_addresses.sh
-
 {
     # Update and upgrade the system packages
     sudo apt-get update -y
@@ -59,25 +56,25 @@ source ip_addresses.sh
 
     # Prepare the content for the MySQL Cluster configuration file
     CONFIG_INI_CONTENT="[ndb_mgmd]
-    hostname=${MANAGER_IP}
+    hostname=$MANAGER_IP
     datadir=/opt/mysqlcluster/deploy/ndb_data
-    nodeid=1
+    nodeid=manager
 
     [ndbd default]
-    noofreplicas=3
+    noofreplicas=2
     datadir=/opt/mysqlcluster/deploy/ndb_data
 
     [ndbd]
     hostname=${WORKER_IPS[0]}
-    nodeid=2
+    nodeid=0
 
     [ndbd]
     hostname=${WORKER_IPS[1]}
-    nodeid=3
+    nodeid=1
 
     [ndbd]
     hostname=${WORKER_IPS[2]}
-    nodeid=4
+    nodeid=2
 
     [mysqld]
     nodeid=50
@@ -94,5 +91,7 @@ source ip_addresses.sh
 
     # Start the MySQL Cluster Management Node
     sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgmd -f /opt/mysqlcluster/deploy/conf/config.ini --initial --configdir=/opt/mysqlcluster/deploy/conf/ --ndb-nodeid=1
+
+    sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgm -e show
 
 } >> /var/log/progress.log 2>&1
