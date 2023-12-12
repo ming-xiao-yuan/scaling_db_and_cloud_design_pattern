@@ -52,6 +52,7 @@ resource "aws_security_group" "mysql_sg" {
 resource "aws_instance" "mysql_server" {
   ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.micro"
+  key_name        = aws_key_pair.key_pair_name.key_name
   security_groups = [aws_security_group.mysql_sg.name]
   user_data       = file("./mysql_server_user_data.sh")
 
@@ -88,8 +89,21 @@ resource "aws_instance" "mysql_cluster_worker" {
   count           = 3
   ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.micro"
+  key_name        = aws_key_pair.key_pair_name.key_name
   security_groups = [aws_security_group.mysql_sg.name]
   user_data       = file("./mysql_worker_user_data.sh")
+
+  provisioner "file" {
+    source      = "../scripts/ip_addresses.sh"
+    destination = "/tmp/ip_addresses.sh"
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("./my_terraform_key")
+      host        = self.public_ip
+    }
+  }
 
   tags = {
     Name = "MySQL Cluster Worker ${count.index}"

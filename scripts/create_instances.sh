@@ -19,8 +19,13 @@ WORKER_IPS=$(terraform output -json mysql_cluster_worker_ips | grep -oP '(?<=\[|
 echo "MANAGER_IP=$MANAGER_IP" > ../scripts/ip_addresses.sh
 echo "WORKER_IPS=(${WORKER_IPS[@]})" >> ../scripts/ip_addresses.sh
 
-# Convert IP addresses and transfer the file to the EC2 instance
+# Convert IP addresses and transfer the file to the Manager EC2 instance
 cd ../scripts
 echo -e "Converting IP addresses...\n"
 ./convert_ip_addresses.sh
 scp -o StrictHostKeyChecking=no -i ../infrastructure/my_terraform_key ip_addresses.sh ubuntu@$MANAGER_IP:/tmp/ip_addresses.sh
+
+# Transfer ip_addresses.sh to each Worker EC2 instance
+for WORKER_IP in ${WORKER_IPS[@]}; do
+    scp -o StrictHostKeyChecking=no -i ../infrastructure/my_terraform_key ip_addresses.sh ubuntu@$WORKER_IP:/tmp/ip_addresses.sh
+done

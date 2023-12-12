@@ -35,9 +35,28 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     sudo mkdir -p /opt/mysqlcluster/deploy/ndb_data
 
-    # Create an empty log file for node with ID 4
-    sudo touch /opt/mysqlcluster/deploy/ndb_data/ndb_4_out.log
-    sudo chown ubuntu:ubuntu /opt/mysqlcluster/deploy/ndb_data/ndb_4_out.log
+    # Source the IP addresses
+    source /tmp/ip_addresses.sh
 
-    ndbd -c ec2-3-92-166-68.compute-1.amazonaws.com:1186
+    # Get the private IP of this instance
+    PUBLIC_DNS=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
+
+    # Initialize node ID
+    NODE_ID=""
+
+    # Loop through the worker IPs to find a match
+    for i in "${!WORKER_IPS[@]}"; do
+        if [ "${WORKER_IPS[$i]}" == "$PUBLIC_DNS" ]; then
+            NODE_ID=$((i + 2))  # Node IDs start from 2
+            break
+        fi
+    done
+
+    # Create an empty log file for this node
+    sudo touch /opt/mysqlcluster/deploy/ndb_data/ndb_${NODE_ID}_out.log
+    sudo chown ubuntu:ubuntu /opt/mysqlcluster/deploy/ndb_data/ndb_${NODE_ID}_out.log
+
+    # Start the MySQL Cluster Data Node
+    ndbd -c ${MANAGER_DNS}:1186
+
 }>> /var/log/progress.log 2>&1
