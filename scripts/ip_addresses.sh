@@ -1,2 +1,2 @@
-MANAGER_DNS=ec2-52-90-132-18.compute-1.amazonaws.com
-WORKER_DNS=("ec2-3-84-186-208.compute-1.amazonaws.com" "ec2-18-212-219-115.compute-1.amazonaws.com" "ec2-18-207-115-180.compute-1.amazonaws.com" )
+MANAGER_DNS=ec2-23-23-32-15.compute-1.amazonaws.com
+WORKER_DNS=("ec2-18-234-52-187.compute-1.amazonaws.com" "ec2-34-228-186-66.compute-1.amazonaws.com" "ec2-34-229-15-62.compute-1.amazonaws.com" )

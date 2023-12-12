@@ -42,13 +42,14 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     cd conf
 
     # Create and write the MySQLD configuration file
-    sudo bash -c 'cat <<EOF > /opt/mysqlcluster/deploy/conf/my.cnf
-    [mysqld]
+    MYSQLD_CONFIG="[mysqld]
     ndbcluster
     datadir=/opt/mysqlcluster/deploy/mysqld_data
     basedir=/opt/mysqlcluster/home/mysqlc
-    port=3306
-    EOF'
+    port=3306"
+
+    # Write the configuration to my.cnf
+    echo "$MYSQLD_CONFIG" | sudo tee /opt/mysqlcluster/deploy/conf/my.cnf > /dev/null
 
     # Source the IP addresses
     source /tmp/ip_addresses.sh
@@ -91,6 +92,18 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     # Start the MySQL Cluster Management Node
     sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgmd -f /opt/mysqlcluster/deploy/conf/config.ini --initial --configdir=/opt/mysqlcluster/deploy/conf/ --ndb-nodeid=1
 
+
+    # Wait for a predetermined period for nodes to connect
+    echo "Waiting for nodes to connect..."
+    sleep 120  # Wait for 120 seconds (2 minutes)
+    echo "Continuing with the assumption that nodes are connected."
+    
     sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgm -e show
+
+    sudo mkdir -p /opt/mysqlcluster/deploy/mysqld_data
+    sudo chown -R mysql:mysql /opt/mysqlcluster/deploy/mysqld_data
+
+    /opt/mysqlcluster/home/mysqlc/bin/mysqld --defaults-file=/opt/mysqlcluster/deploy/conf/my.cnf --basedir=/opt/mysqlcluster/home/mysqlc --user=root &
+
 
 } >> /var/log/progress.log 2>&1
