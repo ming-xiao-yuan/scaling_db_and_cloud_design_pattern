@@ -45,8 +45,8 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     NODE_ID=""
 
     # Loop through the worker IPs to find a match
-    for i in "${!WORKER_IPS[@]}"; do
-        if [ "${WORKER_IPS[$i]}" == "$PUBLIC_DNS" ]; then
+    for i in "${!WORKER_DNS[@]}"; do
+        if [ "${WORKER_DNS[$i]}" == "$PUBLIC_DNS" ]; then
             NODE_ID=$((i + 2))  # Node IDs start from 2
             break
         fi

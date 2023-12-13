@@ -101,9 +101,79 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgm -e show
 
     sudo mkdir -p /opt/mysqlcluster/deploy/mysqld_data
-    sudo chown -R mysql:mysql /opt/mysqlcluster/deploy/mysqld_data
+    sudo chown -R root:root /opt/mysqlcluster/deploy/mysqld_data
 
     /opt/mysqlcluster/home/mysqlc/bin/mysqld --defaults-file=/opt/mysqlcluster/deploy/conf/my.cnf --basedir=/opt/mysqlcluster/home/mysqlc --user=root &
+
+
+    # Wait for MySQL to start
+    echo "Waiting for MySQL to start..."
+    sleep 60
+
+    cd /tmp
+
+    echo "Start Sakila installation at $(date)"
+
+    # Sakila Database URL
+    SAKILA_DB_URL="https://downloads.mysql.com/docs/sakila-db.tar.gz"
+
+    # Download and extract the Sakila database
+    echo "Downloading Sakila Database..."
+    wget -q ${SAKILA_DB_URL} -O sakila-db.tar.gz
+    tar -xzf sakila-db.tar.gz
+    cd sakila-db
+
+    # Load Sakila schema and data into MySQL
+    echo "Loading Sakila Schema and Data into MySQL..."
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "source sakila-schema.sql;"
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "source sakila-data.sql;"
+
+    # Verify tables in the Sakila database
+    echo "Verifying tables in Sakila Database..."
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE sakila; SHOW FULL TABLES;"
+
+    # Clean up downloaded files
+    cd ..
+    rm -rf sakila-db sakila-db.tar.gz
+
+    echo "Sakila installation completed at $(date)"
+
+
+    echo "Start Sysbench benchmarking at $(date)"
+
+    # Sysbench configuration
+    MYSQL_HOST="${MANAGER_DNS}"
+    MYSQL_PORT=1186
+
+    # MySQL credentials and database details
+    MYSQL_USER="root"
+    MYSQL_DB="sakila"
+    MYSQL_PASSWORD=""
+
+    # Sysbench configuration
+    SYSBENCH_TABLES=10
+    SYSBENCH_TABLE_SIZE=10000
+    SYSBENCH_THREADS=4
+    SYSBENCH_TIME=60  # duration of the test in seconds
+
+    # Install Sysbench (if it's not already installed)
+    echo "Installing Sysbench..."
+    sudo apt-get update -y
+    sudo apt-get install -y sysbench
+
+    # Prepare the Sysbench test environment
+    echo "Preparing the Sysbench test environment..."
+    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --mysql-host=$MYSQL_HOST --mysql-port=$MYSQL_PORT --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE prepare
+
+    # Run the Sysbench benchmark
+    echo "Running the Sysbench benchmark..."
+    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE --threads=$SYSBENCH_THREADS --time=$SYSBENCH_TIME run
+
+    # Clean up after the test
+    echo "Cleaning up..."
+    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE cleanup
+
+    echo "Finish Sysbench benchmarking at $(date)"
 
 
 } >> /var/log/progress.log 2>&1

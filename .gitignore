@@ -15,6 +15,9 @@ crash.*.log
 # Environment variables
 scripts/env_vars.sh
 
+# Ip addresses
+scripts/ip_addresses.sh
+
 # Exclude all .tfvars files, which are likely to contain sensitive data, such as
 # password, private keys, and other secrets. These should not be part of version 
 # control as they are data points which are potentially sensitive and subject 
@@ -43,4 +46,3 @@ terraform.rc
 # Ignore private keys
 my_terraform_key
 my_terraform_key.*
-
