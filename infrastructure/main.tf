@@ -108,6 +108,9 @@ resource "aws_instance" "mysql_cluster_worker" {
   tags = {
     Name = "MySQL Cluster Worker ${count.index}"
   }
+
+  # Ensure that the manager is created before the workers
+  depends_on = [aws_instance.mysql_cluster_manager]
 }
 
 

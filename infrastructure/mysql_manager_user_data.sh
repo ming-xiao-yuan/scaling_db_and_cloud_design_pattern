@@ -138,12 +138,11 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     echo "Sakila installation completed at $(date)"
 
-
     echo "Start Sysbench benchmarking at $(date)"
 
     # Sysbench configuration
-    MYSQL_HOST="${MANAGER_DNS}"
-    MYSQL_PORT=1186
+    MYSQL_HOST="127.0.0.1"
+    MYSQL_PORT=3306
 
     # MySQL credentials and database details
     MYSQL_USER="root"
@@ -167,11 +166,11 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     # Run the Sysbench benchmark
     echo "Running the Sysbench benchmark..."
-    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE --threads=$SYSBENCH_THREADS --time=$SYSBENCH_TIME run
+    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --mysql-host=$MYSQL_HOST --mysql-port=$MYSQL_PORT --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE --threads=$SYSBENCH_THREADS --time=$SYSBENCH_TIME run
 
     # Clean up after the test
     echo "Cleaning up..."
-    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE cleanup
+    sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --mysql-host=$MYSQL_HOST --mysql-port=$MYSQL_PORT --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE cleanup
 
     echo "Finish Sysbench benchmarking at $(date)"
 
