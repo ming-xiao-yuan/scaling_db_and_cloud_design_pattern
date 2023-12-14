@@ -24,5 +24,9 @@ for ip in "${WORKER_IPS[@]}"; do
 done
 echo ")" >> $converted_file
 
+# Convert Proxy IP and write to new file
+proxy_dns=$(convert_ip_to_dns $PROXY_IP)
+echo "PROXY_DNS=$proxy_dns" >> $converted_file
+
 # Move the new file to replace the original ip_addresses.sh
 mv $converted_file ip_addresses.sh

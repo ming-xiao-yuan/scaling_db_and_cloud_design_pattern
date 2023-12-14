@@ -108,11 +108,31 @@ resource "aws_instance" "mysql_cluster_worker" {
   tags = {
     Name = "MySQL Cluster Worker ${count.index}"
   }
-
-  # Ensure that the manager is created before the workers
-  depends_on = [aws_instance.mysql_cluster_manager]
 }
 
+resource "aws_instance" "mysql_proxy" {
+  ami             = "ami-0fc5d935ebf8bc3bc"
+  instance_type   = "t2.large"
+  key_name        = aws_key_pair.key_pair_name.key_name
+  security_groups = [aws_security_group.mysql_sg.name]
+  user_data       = file("./mysql_proxy_user_data.sh")
+
+  provisioner "file" {
+    source      = "../scripts/ip_addresses.sh"
+    destination = "/tmp/ip_addresses.sh"
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("./my_terraform_key")
+      host        = self.public_ip
+    }
+  }
+
+  tags = {
+    Name = "MySQL Proxy Server"
+  }
+}
 
 # Output Public IP of MySQL Cluster Manager
 output "mysql_cluster_manager_ip" {
@@ -122,5 +142,10 @@ output "mysql_cluster_manager_ip" {
 # Output Public IPs of MySQL Cluster Workers
 output "mysql_cluster_worker_ips" {
   value = [for instance in aws_instance.mysql_cluster_worker : instance.public_ip]
+}
+
+# Output Public IP of MySQL Proxy Server
+output "mysql_proxy_server_ip" {
+  value = aws_instance.mysql_proxy.public_ip
 }
 

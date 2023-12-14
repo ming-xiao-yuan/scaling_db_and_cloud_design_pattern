@@ -95,7 +95,7 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     # Wait for a predetermined period for nodes to connect
     echo "Waiting for nodes to connect..."
-    sleep 120  # Wait for 120 seconds (2 minutes)
+    sleep 200  # Wait for 120 seconds (2 minutes)
     echo "Continuing with the assumption that nodes are connected."
     
     sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgm -e show
@@ -155,7 +155,7 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     SYSBENCH_THREADS=4
     SYSBENCH_TIME=60  # duration of the test in seconds
 
-    # Install Sysbench (if it's not already installed)
+    # Install Sysbench
     echo "Installing Sysbench..."
     sudo apt-get update -y
     sudo apt-get install -y sysbench
@@ -173,6 +173,26 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     sysbench /usr/share/sysbench/oltp_read_write.lua --mysql-db=$MYSQL_DB --mysql-user=$MYSQL_USER --mysql-password=$MYSQL_PASSWORD --db-driver=mysql --mysql-host=$MYSQL_HOST --mysql-port=$MYSQL_PORT --tables=$SYSBENCH_TABLES --table-size=$SYSBENCH_TABLE_SIZE cleanup
 
     echo "Finish Sysbench benchmarking at $(date)"
+
+    # Start creating databases for Flask servers
+    echo "Creating databases for Flask servers..."
+
+    # MySQL command to create direct_db
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE direct_db;"
+
+    # MySQL command to create random_db
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE random_db;"
+
+    # MySQL command to create customized_db
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE customized_db;"
+
+    echo "Databases created. Verifying creation..."
+
+    # Verify the creation of the databases
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;" | grep -E 'direct_db|random_db|customized_db'
+
+    echo "Verification complete. Databases direct_db, random_db, and customized_db are created."
+
 
 
 } >> /var/log/progress.log 2>&1
