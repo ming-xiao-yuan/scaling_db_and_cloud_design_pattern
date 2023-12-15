@@ -17,6 +17,9 @@ poll_service() {
   SECONDS=0
   TIMEOUT=300 # Set a 5-minute timeout
 
+  echo "Waiting 2 minutes before starting the health check..."
+  # sleep 120 # Wait for 2 minutes before starting the health check
+
   echo "Waiting for $service_name service at $url to start..."
 
   while true; do
@@ -37,10 +40,20 @@ poll_service() {
       echo "Service not ready yet. Waiting for 10 seconds before retrying..."
       sleep 10 # Wait for 10 seconds before trying again
   done
-  echo "Completed waiting for $service_name service."
-  echo "MySQL cluster is ready."
 
+  echo "Completed waiting for $service_name service."
 }
 
 # Check Proxy service
-poll_service "http://$MANAGER_DNS/health_check" "Proxy"
+poll_service "http://$PROXY_DNS/health_check" "Proxy"
+
+echo "Proxy is ready. Waiting 5 minutes before launching request.py..."
+# sleep 300 # Wait for an additional 5 minutes
+
+# Export the PROXY_DNS environment variable
+export PROXY_DNS=$PROXY_DNS
+echo "PROXY_DNS is set to: $PROXY_DNS"
+
+echo "Executing request.py..."
+# Assuming request.py is in the current directory and python is installed
+python ../requests/send_requests.py

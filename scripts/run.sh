@@ -34,9 +34,9 @@ echo -e "-----------\n"
 echo -e "Deploying the infrastructure...\n"
 ./create_instances.sh
 
-# Wait for 5 minutes
-echo "Waiting for 7 minutes before testing the proxy..."
-sleep 420
+# Wait for 2 minutes
+echo "Waiting for 2 minutes before testing the proxy..."
+sleep 120
 
 # Deploying the infrastructure
 echo -e "Testing the proxy...\n"

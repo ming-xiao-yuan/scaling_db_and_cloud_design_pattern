@@ -95,7 +95,7 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     # Wait for a predetermined period for nodes to connect
     echo "Waiting for nodes to connect..."
-    sleep 200  # Wait for 120 seconds (2 minutes)
+    sleep 180  # Wait for 180 seconds (3 minutes)
     echo "Continuing with the assumption that nodes are connected."
     
     sudo /opt/mysqlcluster/home/mysqlc/bin/ndb_mgm -e show
@@ -174,25 +174,54 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     echo "Finish Sysbench benchmarking at $(date)"
 
-    # Start creating databases for Flask servers
-    echo "Creating databases for Flask servers..."
+    # Grant privileges
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 
-    # MySQL command to create direct_db
+    # Create databases
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE direct_db;"
-
-    # MySQL command to create random_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE random_db;"
-
-    # MySQL command to create customized_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE customized_db;"
 
+    # Verify databases creation
     echo "Databases created. Verifying creation..."
-
-    # Verify the creation of the databases
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;" | grep -E 'direct_db|random_db|customized_db'
-
     echo "Verification complete. Databases direct_db, random_db, and customized_db are created."
 
+    # Create direct_table in direct_db
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
+    USE direct_db;
+    CREATE TABLE direct_table (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        column1 VARCHAR(255),
+        column2 VARCHAR(255)
+    );"
 
+    # Create random_table in random_db
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
+    USE random_db;
+    CREATE TABLE random_table (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        column1 VARCHAR(255),
+        column2 VARCHAR(255)
+    );"
+
+    # Create customized_table in customized_db
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
+    USE customized_db;
+    CREATE TABLE customized_table (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        column1 VARCHAR(255),
+        column2 VARCHAR(255)
+    );"
+
+    echo "Databases and tables created successfully."
+
+    # Verification
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;"
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE direct_db; SHOW TABLES;"
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE random_db; SHOW TABLES;"
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE customized_db; SHOW TABLES;"
+
+    echo "Verification complete."
 
 } >> /var/log/progress.log 2>&1

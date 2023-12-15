@@ -24,8 +24,9 @@ def health_check():
     )
 
 
-@app.route("/query", methods=["POST"])
-def query_db():
+@app.route("/direct", methods=["POST"])
+def manage_direct():
+    print("Received direct query request")
     data = request.json
     sql = data.get("sql")
 
@@ -35,6 +36,10 @@ def query_db():
         print("No SQL query provided.")
         return jsonify({"error": "No SQL query provided"}), 400
 
+    # Initialize 'conn' and 'cursor' as None
+    conn = None
+    cursor = None
+
     try:
         conn = mysql.connector.connect(**manager_db_config)
         cursor = conn.cursor()
@@ -43,20 +48,22 @@ def query_db():
         if sql.strip().lower().startswith("select"):
             # Fetch results for SELECT queries
             result = cursor.fetchall()
-            print("Query result: {}".format(result))
+            print("Received select query result:", result)
         else:
             # Commit changes for INSERT, UPDATE, DELETE queries
             conn.commit()
-            result = {"message": "Query executed successfully"}
-            print("Query executed successfully.")
+            result = {"message": "Insert query executed successfully"}
+            print("Received insert query. Executed successfully.")
 
         return jsonify(result)
     except mysql.connector.Error as err:
-        print("Error executing query: {}".format(err))
+        print("Error executing query:", err)
         return jsonify({"error": str(err)}), 500
     finally:
-        if conn and conn.is_connected():
+        # Close cursor and connection if they were successfully created
+        if cursor:
             cursor.close()
+        if conn and conn.is_connected():
             conn.close()
             print("MySQL connection closed.")
 
