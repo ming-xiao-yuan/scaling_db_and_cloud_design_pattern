@@ -18,7 +18,7 @@ poll_service() {
   TIMEOUT=300 # Set a 5-minute timeout
 
   echo "Waiting 2 minutes before starting the health check..."
-  # sleep 120 # Wait for 2 minutes before starting the health check
+  sleep 120 # Wait for 2 minutes before starting the health check
 
   echo "Waiting for $service_name service at $url to start..."
 
@@ -48,7 +48,7 @@ poll_service() {
 poll_service "http://$PROXY_DNS/health_check" "Proxy"
 
 echo "Proxy is ready. Waiting 5 minutes before launching request.py..."
-# sleep 300 # Wait for an additional 5 minutes
+sleep 300 # Wait for an additional 5 minutes
 
 # Export the PROXY_DNS environment variable
 export PROXY_DNS=$PROXY_DNS

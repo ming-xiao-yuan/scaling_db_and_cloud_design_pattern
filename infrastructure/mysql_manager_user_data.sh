@@ -177,19 +177,17 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     # Grant privileges
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;"
 
-    # Create databases
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE direct_db;"
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE random_db;"
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE customized_db;"
+    # Create database
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "CREATE DATABASE main_db;"
 
     # Verify databases creation
     echo "Databases created. Verifying creation..."
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;" | grep -E 'direct_db|random_db|customized_db'
-    echo "Verification complete. Databases direct_db, random_db, and customized_db are created."
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;" | grep -E 'direct_db'
+    echo "Verification complete. Database main_db is created."
 
     # Create direct_table in direct_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
-    USE direct_db;
+    USE main_db;
     CREATE TABLE direct_table (
         id INT AUTO_INCREMENT PRIMARY KEY,
         column1 VARCHAR(255),
@@ -198,7 +196,7 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     # Create random_table in random_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
-    USE random_db;
+    USE main_db;
     CREATE TABLE random_table (
         id INT AUTO_INCREMENT PRIMARY KEY,
         column1 VARCHAR(255),
@@ -207,21 +205,20 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     # Create customized_table in customized_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
-    USE customized_db;
+    USE main_db;
     CREATE TABLE customized_table (
         id INT AUTO_INCREMENT PRIMARY KEY,
         column1 VARCHAR(255),
         column2 VARCHAR(255)
     );"
 
-    echo "Databases and tables created successfully."
+    echo "Database and tables created successfully."
 
     # Verification
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;"
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE direct_db; SHOW TABLES;"
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE random_db; SHOW TABLES;"
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE customized_db; SHOW TABLES;"
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "USE main_db; SHOW TABLES;"
 
     echo "Verification complete."
+    echo "Manager script finished."
 
 } >> /var/log/progress.log 2>&1
