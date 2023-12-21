@@ -9,7 +9,7 @@ cd ../infrastructure
 # Initialize and apply Terraform configuration
 echo -e "Creating instances...\n"
 terraform init
-terraform apply -auto-approve -var="AWS_ACCESS_KEY=$AWS_ACCESS_KEY" -var="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" -var="AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"
+terraform apply -auto-approve -var="AWS_ACCESS_KEY=$AWS_ACCESS_KEY" -var="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" -var="AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN" -var="private_key_path=../infrastructure/my_terraform_key"
 
 # Ensure terraform apply completed successfully
 if [ $? -ne 0 ]; then

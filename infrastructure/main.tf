@@ -110,6 +110,12 @@ resource "aws_instance" "mysql_cluster_worker" {
   }
 }
 
+variable "private_key_path" {
+  description = "Path to the SSH private key"
+  type        = string
+  default     = "./my_terraform_key"
+}
+
 resource "aws_instance" "mysql_proxy" {
   ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.large"
@@ -125,6 +131,18 @@ resource "aws_instance" "mysql_proxy" {
       type        = "ssh"
       user        = "ubuntu"
       private_key = file("./my_terraform_key")
+      host        = self.public_ip
+    }
+  }
+
+  provisioner "file" {
+    source      = var.private_key_path
+    destination = "/home/ubuntu/my_terraform_key"
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file(var.private_key_path)
       host        = self.public_ip
     }
   }

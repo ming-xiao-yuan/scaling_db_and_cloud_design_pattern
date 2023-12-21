@@ -19,13 +19,15 @@ export DEBIAN_FRONTEND=noninteractive
     source /tmp/ip_addresses.sh
 
     # Pull the latest proxy image from Docker Hub
-
     echo "Starting Docker image pull at $(date)"
     sudo docker pull mingxiaoyuan/proxy:latest
     echo "Docker image pull completed at $(date)"
 
+    # Changes file permission to the owner
+    chmod 600 /home/ubuntu/my_terraform_key
+
     # Run the Flask app inside a Docker container
-    sudo docker run -e MANAGER_DNS="$MANAGER_DNS" -p 80:5000 mingxiaoyuan/proxy:latest
+    # Mount the SSH key inside the container at /etc/proxy/my_terraform_key
+    sudo docker run -e MANAGER_DNS="$MANAGER_DNS" -e WORKER_DNS="$WORKER_DNS" -p 80:5000 -v /home/ubuntu/my_terraform_key:/etc/proxy/my_terraform_key mingxiaoyuan/proxy:latest
 
 } >> /var/log/progress.log 2>&1
-

@@ -47,13 +47,12 @@ poll_service() {
 # Check Proxy service
 poll_service "http://$PROXY_DNS/health_check" "Proxy"
 
-echo "Proxy is ready. Waiting 5 minutes before launching request.py..."
-sleep 300 # Wait for an additional 5 minutes
+echo "Proxy is ready. Waiting 4 minutes before launching request.py..."
+sleep 240 # Wait for an additional 5 minutes
 
 # Export the PROXY_DNS environment variable
 export PROXY_DNS=$PROXY_DNS
 echo "PROXY_DNS is set to: $PROXY_DNS"
 
 echo "Executing request.py..."
-# Assuming request.py is in the current directory and python is installed
 python ../requests/send_requests.py

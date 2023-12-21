@@ -59,4 +59,4 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
     # Start the MySQL Cluster Data Node
     ndbd -c ${MANAGER_DNS}:1186
 
-}>> /var/log/progress.log 2>&1
+} >> /var/log/progress.log 2>&1

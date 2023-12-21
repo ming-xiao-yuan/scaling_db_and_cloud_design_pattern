@@ -14,6 +14,9 @@ PROXY_POPULATE_URL = f"http://{proxy_dns}/populate_tables"
 # Proxy direct URL
 PROXY_DIRECT_URL = f"http://{proxy_dns}/fetch_direct"
 
+# Proxy random URL
+PROXY_RANDOM_URL = f"http://{proxy_dns}/fetch_random"
+
 
 def send_write_sql_requests(table_name, num_requests):
     write_query = (
@@ -34,21 +37,40 @@ def send_write_sql_requests(table_name, num_requests):
 
 def send_read_sql_requests_direct():
     read_query = "SELECT * FROM direct_table LIMIT 1"
-    print("Starting to send read requests to direct_table...")
+    print("Starting to send read direct requests to direct_table...")
 
     for i in range(20):
         # Send the SQL read query to the proxy server
         response = requests.post(PROXY_DIRECT_URL, json={"sql": read_query})
         if response.status_code != 200:
-            print(f"Error executing read query: {read_query}")
+            print(f"Error executing direct read query: {read_query}")
         else:
             # Extract and print the response data
             response_data = response.json()
             print(
-                f"Read request {i+1}/20 to direct_table successful. Response: {response_data}"
+                f"Read direct request {i+1}/20 to direct_table successful. Response: {response_data}"
             )
 
     print("Completed sending 20 read SQL requests to direct_table.")
+
+
+def send_read_sql_requests_random():
+    read_query = "SELECT * FROM random_table LIMIT 1"
+    print("Starting to send random read requests to random_table...")
+
+    for i in range(20):
+        # Send the SQL read query to the proxy server
+        response = requests.post(PROXY_RANDOM_URL, json={"sql": read_query})
+        if response.status_code != 200:
+            print(f"Error executing random read query: {read_query}")
+        else:
+            # Extract and print the response data
+            response_data = response.json()
+            print(
+                f"Read random request {i+1}/20 to random_table successful. Response: {response_data}"
+            )
+
+    print("Completed sending 20 random read SQL requests to random_table.")
 
 
 def main():
@@ -60,11 +82,32 @@ def main():
 
     print("Finish populating tables.")
 
-    print("Script started. Sending SQL read requests for direct hit...")
+    print(
+        "===================================DIRECT HIT==================================="
+    )
     # Send read requests to direct_table
     send_read_sql_requests_direct()
+    print("Script completed. All direct requests have been sent.")
+    print(
+        "===================================DIRECT HIT FINISHED==================================="
+    )
 
-    print("Script completed. All requests have been sent.")
+    print(
+        "===================================RANDOM HIT==================================="
+    )
+    # Send read requests to random_table
+    send_read_sql_requests_random()
+    print("Script completed. All radndom requests have been sent.")
+    print(
+        "===================================RANDOM HIT FINISHED==================================="
+    )
+
+    # print(
+    #     "===================================CUSTOMIZED HIT==================================="
+    # )
+    # print(
+    #     "===================================CUSTOMIZED HIT FINISHED==================================="
+    # )
 
 
 if __name__ == "__main__":

@@ -182,10 +182,10 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
 
     # Verify databases creation
     echo "Databases created. Verifying creation..."
-    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;" | grep -E 'direct_db'
+    /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "SHOW DATABASES;" | grep -E 'main_db'
     echo "Verification complete. Database main_db is created."
 
-    # Create direct_table in direct_db
+    # Create direct_table in main_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
     USE main_db;
     CREATE TABLE direct_table (
@@ -194,7 +194,7 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
         column2 VARCHAR(255)
     );"
 
-    # Create random_table in random_db
+    # Create random_table in main_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
     USE main_db;
     CREATE TABLE random_table (
@@ -203,7 +203,7 @@ export PATH=/opt/mysqlcluster/home/mysqlc/bin:$PATH
         column2 VARCHAR(255)
     );"
 
-    # Create customized_table in customized_db
+    # Create customized_table in main_db
     /opt/mysqlcluster/home/mysqlc/bin/mysql -u root -e "
     USE main_db;
     CREATE TABLE customized_table (
