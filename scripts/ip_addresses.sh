@@ -1,3 +1,3 @@
-MANAGER_DNS=ec2-184-73-112-249.compute-1.amazonaws.com
-WORKER_DNS=("ec2-54-165-69-245.compute-1.amazonaws.com" "ec2-107-21-34-177.compute-1.amazonaws.com" "ec2-54-81-3-209.compute-1.amazonaws.com" )
-PROXY_DNS=ec2-3-89-160-94.compute-1.amazonaws.com
+MANAGER_DNS=ec2-34-238-40-117.compute-1.amazonaws.com
+WORKER_DNS=("ec2-3-86-185-82.compute-1.amazonaws.com" "ec2-3-83-17-177.compute-1.amazonaws.com" "ec2-3-82-174-158.compute-1.amazonaws.com" )
+PROXY_DNS=ec2-18-215-160-35.compute-1.amazonaws.com

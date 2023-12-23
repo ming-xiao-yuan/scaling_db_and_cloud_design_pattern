@@ -3,8 +3,6 @@ import requests
 
 # Fetch the PROXY_DNS environment variable
 proxy_dns = os.environ.get("PROXY_DNS")
-
-# Check if PROXY_DNS is set
 if not proxy_dns:
     raise ValueError("PROXY_DNS environment variable not set")
 
@@ -17,11 +15,12 @@ PROXY_DIRECT_URL = f"http://{proxy_dns}/fetch_direct"
 # Proxy random URL
 PROXY_RANDOM_URL = f"http://{proxy_dns}/fetch_random"
 
+# Proxy customized URL
+PROXY_CUSTOMIZED_URL = f"http://{proxy_dns}/fetch_customized"
+
 
 def send_write_sql_requests(table_name, num_requests):
-    write_query = (
-        f"INSERT INTO {table_name} (column1, column2) VALUES ('value1', 'value2')"
-    )
+    write_query = f"INSERT INTO {table_name} (column1, column2) VALUES ('column1_value', 'column2_value')"
     print(f"Starting to send write requests to {table_name}...")
 
     for i in range(num_requests):
@@ -73,6 +72,25 @@ def send_read_sql_requests_random():
     print("Completed sending 20 random read SQL requests to random_table.")
 
 
+def send_read_sql_requests_customized():
+    read_query = "SELECT * FROM customized_table LIMIT 1"
+    print("Starting to send customized read requests to customized_table...")
+
+    for i in range(20):
+        # Send the SQL read query to the proxy server
+        response = requests.post(PROXY_CUSTOMIZED_URL, json={"sql": read_query})
+        if response.status_code != 200:
+            print(f"Error executing customized read query: {read_query}")
+        else:
+            # Extract and print the response data
+            response_data = response.json()
+            print(
+                f"Read customized request {i+1}/20 to customized_table successful. Response: {response_data}"
+            )
+
+    print("Completed sending 20 customized read SQL requests to customized_table.")
+
+
 def main():
     print("Script started. Sending SQL write requests...")
 
@@ -102,12 +120,14 @@ def main():
         "===================================RANDOM HIT FINISHED==================================="
     )
 
-    # print(
-    #     "===================================CUSTOMIZED HIT==================================="
-    # )
-    # print(
-    #     "===================================CUSTOMIZED HIT FINISHED==================================="
-    # )
+    print(
+        "===================================CUSTOMIZED HIT==================================="
+    )
+    # Send read requests to customized_table
+    send_read_sql_requests_customized()
+    print(
+        "===================================CUSTOMIZED HIT FINISHED==================================="
+    )
 
 
 if __name__ == "__main__":

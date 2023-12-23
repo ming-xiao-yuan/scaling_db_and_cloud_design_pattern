@@ -1,9 +1,12 @@
-FROM python:3.9
+FROM python:3.8
 
 # Set the working directory
 WORKDIR /proxy_app
 
-# Copy the current directory contents into the container at /orchestrator_app
+# Install ping utility
+RUN apt-get update && apt-get install -y iputils-ping
+
+# Copy the current directory contents into the container at /proxy_app
 COPY . .
 
 # Install the dependencies

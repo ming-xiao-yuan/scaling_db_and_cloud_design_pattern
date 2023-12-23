@@ -48,7 +48,7 @@ poll_service() {
 poll_service "http://$PROXY_DNS/health_check" "Proxy"
 
 echo "Proxy is ready. Waiting 4 minutes before launching request.py..."
-sleep 240 # Wait for an additional 5 minutes
+sleep 240 # Wait for an additional 4 minutes
 
 # Export the PROXY_DNS environment variable
 export PROXY_DNS=$PROXY_DNS

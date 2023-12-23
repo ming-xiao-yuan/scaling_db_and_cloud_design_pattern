@@ -12,7 +12,7 @@ source env_vars.sh
 
 cd ../scripts
 
-Getting AWS credentials from the terminal
+#Getting AWS credentials from the terminal
 echo "Please provide your AWS Access Key: "
 read AWS_ACCESS_KEY
 

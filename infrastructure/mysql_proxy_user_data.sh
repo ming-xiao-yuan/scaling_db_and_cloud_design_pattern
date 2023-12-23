@@ -26,8 +26,9 @@ export DEBIAN_FRONTEND=noninteractive
     # Changes file permission to the owner
     chmod 600 /home/ubuntu/my_terraform_key
 
+    WORKER_DNS_STRING=$(IFS=,; echo "${WORKER_DNS[*]}")
+
     # Run the Flask app inside a Docker container
-    # Mount the SSH key inside the container at /etc/proxy/my_terraform_key
-    sudo docker run -e MANAGER_DNS="$MANAGER_DNS" -e WORKER_DNS="$WORKER_DNS" -p 80:5000 -v /home/ubuntu/my_terraform_key:/etc/proxy/my_terraform_key mingxiaoyuan/proxy:latest
+    sudo docker run -e MANAGER_DNS="$MANAGER_DNS" -e WORKER_DNS="$WORKER_DNS_STRING" -p 80:5000 -v /home/ubuntu/my_terraform_key:/etc/proxy/my_terraform_key mingxiaoyuan/proxy:latest
 
 } >> /var/log/progress.log 2>&1
