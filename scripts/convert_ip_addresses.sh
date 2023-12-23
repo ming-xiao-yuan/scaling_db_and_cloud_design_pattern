@@ -28,5 +28,13 @@ echo ")" >> $converted_file
 proxy_dns=$(convert_ip_to_dns $PROXY_IP)
 echo "PROXY_DNS=$proxy_dns" >> $converted_file
 
+# Convert Gatekeeper IP and write to new file
+gatekeeper_dns=$(convert_ip_to_dns $GATEKEEPER_IP)
+echo "GATEKEEPER_IP=$gatekeeper_dns" >> $converted_file
+
+# Convert Trusted Host IP and write to new file
+trusted_host_dns=$(convert_ip_to_dns $TRUSTED_HOST_IP)
+echo "TRUSTED_HOST_IP=$trusted_host_dns" >> $converted_file
+
 # Move the new file to replace the original ip_addresses.sh
 mv $converted_file ip_addresses.sh
