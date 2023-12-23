@@ -19,21 +19,29 @@ manager_db_config = {
     "database": "main_db",  # Database name
 }
 
+# Retrieve and validate the list of worker DNS addresses from environment variables
 worker_dns_list = os.environ.get("WORKER_DNS", "").split(",")
+app.logger.warning("Worker DNS list is: {}".format(worker_dns_list))
 if not worker_dns_list:
     raise ValueError("Worker DNS list is empty or not set")
 
-# Global variables for SSH tunnels
+# Global variables for SSH tunnels and request counters
 random_ssh_tunnel = None
 customized_ssh_tunnel = None
-ping_times = None  # To store the ping times of each worker node
-
-# Global request counters
+ping_times = None
 random_request_counter = 0
 
 
 def create_ssh_tunnel(worker_node):
-    """Creates an SSH tunnel to a specified worker node."""
+    """
+    Creates an SSH tunnel to the specified worker node.
+
+    Args:
+        worker_node (str): The worker node address to create an SSH tunnel to.
+
+    Returns:
+        SSHTunnelForwarder: An active SSH tunnel instance or None if failed.
+    """
     global ssh_tunnel_port
     try:
         tunnel = SSHTunnelForwarder(
@@ -44,6 +52,7 @@ def create_ssh_tunnel(worker_node):
             local_bind_address=("127.0.0.1", 9000),
         )
         tunnel.start()
+        app.logger.warning("Successfully establish SSH tunnel.")
         return tunnel
     except Exception as e:
         app.logger.error(f"Failed to establish SSH tunnel: {e}")
@@ -51,7 +60,15 @@ def create_ssh_tunnel(worker_node):
 
 
 def ping_worker_node(worker_node):
-    """Pings a worker node and returns the response time."""
+    """
+    Pings a worker node and returns the response time.
+
+    Args:
+        worker_node (str): The worker node to ping.
+
+    Returns:
+        float: The ping time in milliseconds or infinity if ping fails.
+    """
     try:
         response = subprocess.run(
             ["ping", "-c", "1", worker_node],
@@ -67,18 +84,28 @@ def ping_worker_node(worker_node):
 
 
 def initialize_random_ssh_tunnel():
-    """Initializes a random SSH tunnel at startup."""
+    """
+    Initializes a random SSH tunnel at startup.
+    """
     global random_ssh_tunnel
     chosen_worker_node = random.choice(worker_dns_list)
+    app.logger.warning("Random chosen worker node is: {}".format(chosen_worker_node))
     random_ssh_tunnel = create_ssh_tunnel(chosen_worker_node)
+    app.logger.warning("Random ssh tunnel established.")
 
 
+# Start the thread to initialize a random SSH tunnel
 threading.Thread(target=initialize_random_ssh_tunnel).start()
 
 
 @app.route("/health_check", methods=["GET"])
 def health_check():
-    """Health check endpoint."""
+    """
+    Health check endpoint.
+
+    Returns:
+        str: A simple message indicating the status of the application.
+    """
     return "<h1>Hello, I am the proxy app {} and I am running! I have the manager DNS it's {}.</h1>".format(
         os.environ.get("PROXY_DNS", "Unknown"), manager_db_config["host"]
     )
@@ -86,7 +113,12 @@ def health_check():
 
 @app.route("/populate_tables", methods=["POST"])
 def populate_tables():
-    """Endpoint for populating tables with data."""
+    """
+    Endpoint to populate tables with data.
+
+    Returns:
+        Response: A JSON response indicating success or failure.
+    """
     request_counter = 0
     data = request.json
     sql_template = data.get("sql")
@@ -127,44 +159,40 @@ def populate_tables():
 
 @app.route("/fetch_direct", methods=["POST"])
 def fetch_direct():
-    """Endpoint for fetching data directly."""
+    """
+    Endpoint for fetching data directly.
+
+    Returns:
+        Response: A JSON response with fetched data or an error message.
+    """
     data = request.json
     sql = data.get("sql")
 
     if not sql:
         return jsonify({"error": "No SQL query provided"}), 400
 
-    # Check if the query is a SELECT query for direct_table
-    if (
-        not sql.strip().lower().startswith("select")
-        or "direct_table" not in sql.lower()
-    ):
-        return jsonify({"error": "Invalid query"}), 400
-
     # Initialize 'conn' and 'cursor' as None
     conn = None
     cursor = None
 
     try:
-        conn = mysql.connector.connect(**manager_db_config)
-
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        result = cursor.fetchall()
+        with mysql.connector.connect(**manager_db_config) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
         return jsonify(result)
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
-    finally:
-        # Close cursor and connection if they were successfully created
-        if cursor:
-            cursor.close()
-        if conn and conn.is_connected():
-            conn.close()
 
 
 @app.route("/fetch_random", methods=["POST"])
 def fetch_random():
-    """Endpoint for fetching data from a randomly chosen node."""
+    """
+    Endpoint for fetching data from a randomly chosen node.
+
+    Returns:
+        Response: A JSON response with fetched data or an error message.
+    """
     global random_ssh_tunnel, random_request_counter
     data = request.json
     sql = data.get("sql")
@@ -172,17 +200,11 @@ def fetch_random():
     if not sql:
         return jsonify({"error": "No SQL query provided"}), 400
 
-    if not sql.strip().lower().startswith("select"):
-        return jsonify({"error": "Invalid query"}), 400
-
     if random_ssh_tunnel is None or not random_ssh_tunnel.is_active:
         return jsonify({"error": "SSH tunnel is not established"}), 500
 
     conn = None
     cursor = None  # Initialize cursor to None
-
-    if random_ssh_tunnel is None or not random_ssh_tunnel.is_active:
-        return jsonify({"error": "SSH tunnel is not established"}), 500
 
     # Use the existing SSH tunnel for the database connection
     manager_tunnel = {
@@ -192,35 +214,35 @@ def fetch_random():
         "database": "main_db",
     }
     try:
-        conn = mysql.connector.connect(**manager_tunnel)
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        result = cursor.fetchall()
+        with mysql.connector.connect(**manager_tunnel) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
+
+        random_request_counter += 1
+        if random_request_counter >= 20:
+            close_random_ssh_tunnel()
+        return jsonify(result)
     except mysql.connector.Error as err:
-        app.logger.error("MySQL Error: {}".format(str(err)))
         return jsonify({"error": "MySQL Error: {}".format(str(err))}), 500
-    except Exception as e:
-        app.logger.error(f"Exception in fetch_random: {e}")
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None and conn.is_connected():
-            conn.close()
 
-    random_request_counter += 1
 
-    # Close the SSH tunnel after 20 requests
-    if random_request_counter >= 20:
-        if random_ssh_tunnel and random_ssh_tunnel.is_active:
-            random_ssh_tunnel.stop()
-            random_ssh_tunnel = None
-            random_request_counter = 0  # Reset counter
-            app.logger.warning("Random request tunnel is being closed.")
-    return jsonify(result)
+def close_random_ssh_tunnel():
+    """
+    Closes the random SSH tunnel after 20 requests.
+    """
+    global random_ssh_tunnel, random_request_counter
+    if random_ssh_tunnel and random_ssh_tunnel.is_active:
+        random_ssh_tunnel.stop()
+        random_ssh_tunnel = None
+        random_request_counter = 0
+        app.logger.warning("Random request tunnel is being closed.")
 
 
 def initialize_customized_ssh_tunnel():
+    """
+    Initializes a customized SSH tunnel based on the lowest ping time.
+    """
     global ping_times, customized_ssh_tunnel
     if ping_times is None:
         ping_times = {node: ping_worker_node(node) for node in worker_dns_list}
@@ -234,15 +256,17 @@ def initialize_customized_ssh_tunnel():
 
 @app.route("/fetch_customized", methods=["POST"])
 def fetch_customized():
-    """Endpoint for fetching data from the node with the lowest ping time."""
+    """
+    Endpoint for fetching data from the node with the lowest ping time.
+
+    Returns:
+        Response: A JSON response with fetched data or an error message.
+    """
     data = request.json
     sql = data.get("sql")
 
     if not sql:
         return jsonify({"error": "No SQL query provided"}), 400
-
-    if not sql.strip().lower().startswith("select"):
-        return jsonify({"error": "Invalid query"}), 400
 
     conn = None
     cursor = None
@@ -260,23 +284,13 @@ def fetch_customized():
             "database": "main_db",
         }
 
-        conn = mysql.connector.connect(**manager_tunnel)
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        result = cursor.fetchall()
+        with mysql.connector.connect(**manager_tunnel) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(sql)
+                result = cursor.fetchall()
+        return jsonify(result)
     except mysql.connector.Error as err:
-        app.logger.error(f"MySQL Error in fetch_customized: {err}")
         return jsonify({"error": "MySQL Error: {}".format(str(err))}), 500
-    except Exception as e:
-        app.logger.error(f"Exception in fetch_customized: {e}")
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn and conn.is_connected():
-            conn.close()
-
-    return jsonify(result)
 
 
 if __name__ == "__main__":
