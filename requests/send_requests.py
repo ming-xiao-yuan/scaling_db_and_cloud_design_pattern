@@ -2,21 +2,22 @@ import os
 import requests
 
 # Fetch the PROXY_DNS environment variable
-proxy_dns = os.environ.get("PROXY_DNS")
-if not proxy_dns:
-    raise ValueError("PROXY_DNS environment variable not set")
+trusted_host_dns = os.environ.get("TRUSTED_HOST_DNS")
+print("Trusted host dns is: {}".format(trusted_host_dns))
+if not trusted_host_dns:
+    raise ValueError("TRUSTED_HOST_DNS environment variable not set")
 
 # Proxy populate URL
-PROXY_POPULATE_URL = f"http://{proxy_dns}/populate_tables"
+TRUSTED_HOST_POPULATE_URL = f"http://{trusted_host_dns}/populate_tables"
 
 # Proxy direct URL
-PROXY_DIRECT_URL = f"http://{proxy_dns}/fetch_direct"
+TRUSTED_HOST_DIRECT_URL = f"http://{trusted_host_dns}/fetch_direct"
 
 # Proxy random URL
-PROXY_RANDOM_URL = f"http://{proxy_dns}/fetch_random"
+TRUSTED_HOST_RANDOM_URL = f"http://{trusted_host_dns}/fetch_random"
 
 # Proxy customized URL
-PROXY_CUSTOMIZED_URL = f"http://{proxy_dns}/fetch_customized"
+TRUSTED_HOST_CUSTOMIZED_URL = f"http://{trusted_host_dns}/fetch_customized"
 
 
 def send_write_sql_requests(table_name, num_requests):
@@ -25,7 +26,7 @@ def send_write_sql_requests(table_name, num_requests):
 
     for i in range(num_requests):
         # Send the SQL write query to the proxy server
-        response = requests.post(PROXY_POPULATE_URL, json={"sql": write_query})
+        response = requests.post(TRUSTED_HOST_POPULATE_URL, json={"sql": write_query})
         if response.status_code != 200:
             print(f"Error executing query for {table_name}: {write_query}")
         else:
@@ -40,7 +41,7 @@ def send_read_sql_requests_direct():
 
     for i in range(20):
         # Send the SQL read query to the proxy server
-        response = requests.post(PROXY_DIRECT_URL, json={"sql": read_query})
+        response = requests.post(TRUSTED_HOST_DIRECT_URL, json={"sql": read_query})
         if response.status_code != 200:
             print(f"Error executing direct read query: {read_query}")
         else:
@@ -59,7 +60,7 @@ def send_read_sql_requests_random():
 
     for i in range(20):
         # Send the SQL read query to the proxy server
-        response = requests.post(PROXY_RANDOM_URL, json={"sql": read_query})
+        response = requests.post(TRUSTED_HOST_RANDOM_URL, json={"sql": read_query})
         if response.status_code != 200:
             print(f"Error executing random read query: {read_query}")
         else:
@@ -78,7 +79,7 @@ def send_read_sql_requests_customized():
 
     for i in range(20):
         # Send the SQL read query to the proxy server
-        response = requests.post(PROXY_CUSTOMIZED_URL, json={"sql": read_query})
+        response = requests.post(TRUSTED_HOST_CUSTOMIZED_URL, json={"sql": read_query})
         if response.status_code != 200:
             print(f"Error executing customized read query: {read_query}")
         else:
