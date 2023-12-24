@@ -17,7 +17,7 @@ server = SSHTunnelForwarder(
     (trusted_host_dns, 22),  # Remote SSH server
     ssh_username="ubuntu",
     ssh_pkey="/etc/gatekeeper/my_terraform_key",
-    remote_bind_address=(trusted_host_dns, 9000),  # Trusted Host server port
+    remote_bind_address=(trusted_host_dns, 80),  # Trusted Host server port
     local_bind_address=("127.0.0.1", 80),
 )
 

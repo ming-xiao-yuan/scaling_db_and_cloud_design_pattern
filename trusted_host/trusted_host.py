@@ -17,7 +17,7 @@ server = SSHTunnelForwarder(
     (proxy_dns, 22),  # Remote SSH server
     ssh_username="ubuntu",
     ssh_pkey="/etc/trusted_host/my_terraform_key",
-    remote_bind_address=(proxy_dns, 9000),  # Proxy server port
+    remote_bind_address=(proxy_dns, 80),  # Proxy server port
     local_bind_address=("127.0.0.1", 80),
 )
 

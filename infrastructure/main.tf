@@ -25,30 +25,6 @@ resource "aws_key_pair" "key_pair_name" {
   public_key = file("my_terraform_key.pub")
 }
 
-
-resource "aws_security_group" "mysql_sg" {
-  name        = "mysql_security_group"
-  description = "Allow MySQL traffic"
-  vpc_id      = data.aws_vpc.default.id
-
-
-  ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-}
-
 resource "aws_security_group" "gatekeeper_sg" {
   name        = "gatekeeper_security_group"
   description = "Allow web traffic to Gatekeeper"
@@ -78,11 +54,17 @@ resource "aws_security_group" "trusted_host_sg" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -92,10 +74,61 @@ resource "aws_security_group" "trusted_host_sg" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
     security_groups  = [aws_security_group.mysql_sg.id]
-
   }
 }
 
+resource "aws_security_group" "proxy_sg" {
+  name        = "proxy_security_group"
+  description = "Security group for Proxy"
+  vpc_id      = data.aws_vpc.default.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+    security_groups  = [aws_security_group.mysql_sg.id]
+  }
+}
+
+resource "aws_security_group" "mysql_sg" {
+  name        = "mysql_security_group"
+  description = "Allow MySQL traffic"
+  vpc_id      = data.aws_vpc.default.id
+
+
+  ingress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+}
 
 resource "aws_instance" "mysql_server" {
   ami             = "ami-0fc5d935ebf8bc3bc"
@@ -168,7 +201,7 @@ resource "aws_instance" "mysql_proxy" {
   ami             = "ami-0fc5d935ebf8bc3bc"
   instance_type   = "t2.large"
   key_name        = aws_key_pair.key_pair_name.key_name
-  security_groups = [aws_security_group.mysql_sg.name]
+  security_groups = [aws_security_group.proxy_sg.name]
   user_data       = file("./mysql_proxy_user_data.sh")
 
   provisioner "file" {
