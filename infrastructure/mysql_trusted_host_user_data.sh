@@ -18,7 +18,7 @@ export DEBIAN_FRONTEND=noninteractive
     # Source the IP addresses
     source /tmp/ip_addresses.sh
 
-    # Pull the latest proxy image from Docker Hub
+    # Pull the latest trusted host image from Docker Hub
     echo "Starting Docker image pull at $(date)"
     sudo docker pull mingxiaoyuan/trusted_host:latest
     echo "Docker image pull completed at $(date)"
@@ -28,4 +28,5 @@ export DEBIAN_FRONTEND=noninteractive
 
     # Run the Flask app inside a Docker container
     sudo docker run -e PROXY_DNS="$PROXY_DNS" -p 80:5000 -v /home/ubuntu/my_terraform_key:/etc/trusted_host/my_terraform_key mingxiaoyuan/trusted_host:latest
+    
 } >> /var/log/progress.log 2>&1

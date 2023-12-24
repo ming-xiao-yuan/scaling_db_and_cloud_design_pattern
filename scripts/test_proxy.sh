@@ -45,14 +45,14 @@ poll_service() {
 }
 
 # Check Proxy service
-poll_service "http://$TRUSTED_HOST_DNS/health_check" "Proxy"
+poll_service "http://$GATEKEEPER_DNS/health_check" "Proxy"
 
-echo "Trusted host is ready. Waiting 4 minutes before launching request.py..."
+echo "Gatekeeper is ready. Waiting 4 minutes before launching request.py..."
 sleep 240 # Wait for an additional 4 minutes
 
 # Export the PROXY_DNS environment variable
-export TRUSTED_HOST_DNS=$TRUSTED_HOST_DNS
-echo "TRUSTED_HOST_DNS is set to: $TRUSTED_HOST_DNS"
+export GATEKEEPER_DNS=$GATEKEEPER_DNS
+echo "GATEKEEPER_DNS is set to: $GATEKEEPER_DNS"
 
 echo "Executing request.py..."
 python ../requests/send_requests.py

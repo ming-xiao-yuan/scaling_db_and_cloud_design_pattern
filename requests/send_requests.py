@@ -1,23 +1,23 @@
 import os
 import requests
 
-# Fetch the PROXY_DNS environment variable
-trusted_host_dns = os.environ.get("TRUSTED_HOST_DNS")
-print("Trusted host dns is: {}".format(trusted_host_dns))
-if not trusted_host_dns:
-    raise ValueError("TRUSTED_HOST_DNS environment variable not set")
+# Fetch the GATEKEEPER_DNS environment variable
+gatekeeper_dns = os.environ.get("GATEKEEPER_DNS")
+print("Gatekeeper dns is: {}".format(gatekeeper_dns))
+if not gatekeeper_dns:
+    raise ValueError("GATEKEEPER_DNS environment variable not set")
 
-# Proxy populate URL
-TRUSTED_HOST_POPULATE_URL = f"http://{trusted_host_dns}/populate_tables"
+# Gatekeeper populate URL
+GATEKEEPER_POPULATE_URL = f"http://{gatekeeper_dns}/populate_tables"
 
-# Proxy direct URL
-TRUSTED_HOST_DIRECT_URL = f"http://{trusted_host_dns}/fetch_direct"
+# Gatekeeper direct URL
+GATEKEEPER_DIRECT_URL = f"http://{gatekeeper_dns}/fetch_direct"
 
-# Proxy random URL
-TRUSTED_HOST_RANDOM_URL = f"http://{trusted_host_dns}/fetch_random"
+# Gatekeeper random URL
+GATEKEEPER_RANDOM_URL = f"http://{gatekeeper_dns}/fetch_random"
 
-# Proxy customized URL
-TRUSTED_HOST_CUSTOMIZED_URL = f"http://{trusted_host_dns}/fetch_customized"
+# Gatekeeper customized URL
+GATEKEEPER_CUSTOMIZED_URL = f"http://{gatekeeper_dns}/fetch_customized"
 
 
 def send_write_sql_requests(table_name, num_requests):
@@ -25,8 +25,8 @@ def send_write_sql_requests(table_name, num_requests):
     print(f"Starting to send write requests to {table_name}...")
 
     for i in range(num_requests):
-        # Send the SQL write query to the proxy server
-        response = requests.post(TRUSTED_HOST_POPULATE_URL, json={"sql": write_query})
+        # Send the SQL write query to the Gatekeeper server
+        response = requests.post(GATEKEEPER_POPULATE_URL, json={"sql": write_query})
         if response.status_code != 200:
             print(f"Error executing query for {table_name}: {write_query}")
         else:
@@ -40,8 +40,8 @@ def send_read_sql_requests_direct():
     print("Starting to send read direct requests to direct_table...")
 
     for i in range(20):
-        # Send the SQL read query to the proxy server
-        response = requests.post(TRUSTED_HOST_DIRECT_URL, json={"sql": read_query})
+        # Send the SQL read query to the Gatekeeper server
+        response = requests.post(GATEKEEPER_DIRECT_URL, json={"sql": read_query})
         if response.status_code != 200:
             print(f"Error executing direct read query: {read_query}")
         else:
@@ -59,8 +59,8 @@ def send_read_sql_requests_random():
     print("Starting to send random read requests to random_table...")
 
     for i in range(20):
-        # Send the SQL read query to the proxy server
-        response = requests.post(TRUSTED_HOST_RANDOM_URL, json={"sql": read_query})
+        # Send the SQL read query to the Gatekeeper server
+        response = requests.post(GATEKEEPER_RANDOM_URL, json={"sql": read_query})
         if response.status_code != 200:
             print(f"Error executing random read query: {read_query}")
         else:
@@ -78,8 +78,8 @@ def send_read_sql_requests_customized():
     print("Starting to send customized read requests to customized_table...")
 
     for i in range(20):
-        # Send the SQL read query to the proxy server
-        response = requests.post(TRUSTED_HOST_CUSTOMIZED_URL, json={"sql": read_query})
+        # Send the SQL read query to the Gatekeeper server
+        response = requests.post(GATEKEEPER_CUSTOMIZED_URL, json={"sql": read_query})
         if response.status_code != 200:
             print(f"Error executing customized read query: {read_query}")
         else:

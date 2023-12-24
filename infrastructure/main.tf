@@ -219,6 +219,18 @@ resource "aws_instance" "gatekeeper" {
     }
   }
 
+  provisioner "file" {
+    source      = var.private_key_path
+    destination = "/home/ubuntu/my_terraform_key"
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file(var.private_key_path)
+      host        = self.public_ip
+    }
+  }
+
   tags = {
     Name = "Gatekeeper Server"
   }
