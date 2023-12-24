@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import os
 import requests
+from sshtunnel import SSHTunnelForwarder
 
 
 app = Flask(__name__)
@@ -11,11 +12,21 @@ app.logger.warning("Proxy DNS is: {}".format(proxy_dns))
 if not proxy_dns:
     raise ValueError("PROXY_DNS environment variable not set")
 
-# Define the proxy URLs
-PROXY_POPULATE_URL = f"http://{proxy_dns}/populate_tables"
-PROXY_DIRECT_URL = f"http://{proxy_dns}/fetch_direct"
-PROXY_RANDOM_URL = f"http://{proxy_dns}/fetch_random"
-PROXY_CUSTOMIZED_URL = f"http://{proxy_dns}/fetch_customized"
+# SSH Tunnel setup
+server = SSHTunnelForwarder(
+    (proxy_dns, 22),  # Remote SSH server
+    ssh_username="ubuntu",
+    ssh_pkey="/etc/trusted_host/my_terraform_key",
+    remote_bind_address=(proxy_dns, 9000),  # Proxy server port
+    local_bind_address=("127.0.0.1", 80),
+)
+
+try:
+    server.start()  # Start SSH tunnel
+    app.logger.warning("SSH Tunnel successfully established!")
+except Exception as e:
+    app.logger.error(f"Error establishing SSH Tunnel: {e}")
+    raise
 
 
 @app.route("/health_check", methods=["GET"])
@@ -29,12 +40,11 @@ def health_check():
 def populate_tables():
     app.logger.warning("Received request to populate tables")
     try:
-        response = requests.request(
-            method=request.method, url=PROXY_POPULATE_URL, json=request.get_json()
-        )
+        proxy_url = f"http://{proxy_dns}/populate_tables"
+        response = requests.post(proxy_url, json=request.get_json())
         return jsonify(response.json()), response.status_code
     except Exception as e:
-        app.logger.error("Error in /populate_tables: {}".format(e))
+        app.logger.error(f"Error in /populate_tables: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -42,10 +52,11 @@ def populate_tables():
 def fetch_direct():
     app.logger.warning("Received direct fetch request")
     try:
-        response = requests.post(PROXY_DIRECT_URL, json=request.get_json())
+        proxy_url = f"http://{proxy_dns}/fetch_direct"
+        response = requests.post(proxy_url, json=request.get_json())
         return jsonify(response.json()), response.status_code
     except Exception as e:
-        app.logger.error("Error in /fetch_direct: {}".format(e))
+        app.logger.error(f"Error in /fetch_direct: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -53,10 +64,11 @@ def fetch_direct():
 def fetch_random():
     app.logger.warning("Received random fetch request")
     try:
-        response = requests.post(PROXY_RANDOM_URL, json=request.get_json())
+        proxy_url = f"http://{proxy_dns}/fetch_random"
+        response = requests.post(proxy_url, json=request.get_json())
         return jsonify(response.json()), response.status_code
     except Exception as e:
-        app.logger.error("Error in /fetch_random: {}".format(e))
+        app.logger.error(f"Error in /fetch_direct: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -64,10 +76,11 @@ def fetch_random():
 def fetch_customized():
     app.logger.warning("Received customized fetch request")
     try:
-        response = requests.post(PROXY_CUSTOMIZED_URL, json=request.get_json())
+        proxy_url = f"http://{proxy_dns}/fetch_customized"
+        response = requests.post(proxy_url, json=request.get_json())
         return jsonify(response.json()), response.status_code
     except Exception as e:
-        app.logger.error("Error in /fetch_customized: {}".format(e))
+        app.logger.error(f"Error in /fetch_direct: {e}")
         return jsonify({"error": str(e)}), 500
 
 

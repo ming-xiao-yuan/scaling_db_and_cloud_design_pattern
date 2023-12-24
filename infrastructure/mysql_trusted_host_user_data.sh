@@ -23,6 +23,9 @@ export DEBIAN_FRONTEND=noninteractive
     sudo docker pull mingxiaoyuan/trusted_host:latest
     echo "Docker image pull completed at $(date)"
 
+    # Changes file permission to the owner
+    chmod 600 /home/ubuntu/my_terraform_key
+
     # Run the Flask app inside a Docker container
-    sudo docker run -e PROXY_DNS="$PROXY_DNS" -p 80:5000 mingxiaoyuan/trusted_host:latest
+    sudo docker run -e PROXY_DNS="$PROXY_DNS" -p 80:5000 -v /home/ubuntu/my_terraform_key:/etc/trusted_host/my_terraform_key mingxiaoyuan/trusted_host:latest
 } >> /var/log/progress.log 2>&1
