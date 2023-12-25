@@ -57,14 +57,14 @@ resource "aws_security_group" "trusted_host_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["172.31.49.42/32"] # Only accept SSH from Gatekeeper
   }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["172.31.49.42/32"] # Only accept HTTP from Gatekeeper
   }
 
   egress {
@@ -73,7 +73,7 @@ resource "aws_security_group" "trusted_host_sg" {
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
-    security_groups  = [aws_security_group.mysql_sg.id]
+    security_groups  = [aws_security_group.proxy_sg.id]
   }
 }
 
@@ -234,11 +234,13 @@ resource "aws_instance" "mysql_proxy" {
 }
 
 resource "aws_instance" "gatekeeper" {
-  ami             = "ami-0fc5d935ebf8bc3bc"
-  instance_type   = "t2.large"
-  key_name        = aws_key_pair.key_pair_name.key_name
-  security_groups = [aws_security_group.gatekeeper_sg.name]
-  user_data       = file("./mysql_gatekeeper_user_data.sh")
+  ami               = "ami-0fc5d935ebf8bc3bc"
+  instance_type     = "t2.large"
+  key_name          = aws_key_pair.key_pair_name.key_name
+  security_groups   = [aws_security_group.gatekeeper_sg.name]
+  user_data         = file("./mysql_gatekeeper_user_data.sh")
+  private_ip        = "172.31.49.42"
+  availability_zone = "us-east-1e"
 
   provisioner "file" {
     source      = "../scripts/ip_addresses.sh"
