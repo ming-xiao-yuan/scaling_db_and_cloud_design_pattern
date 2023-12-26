@@ -54,8 +54,3 @@ To ensure the system is functioning as intended, you can manually log into the G
 ## Conclusion
 
 This project serves as a practical example of implementing a scalable database system and cloud design patterns. It showcases the integration of AWS services, Terraform for infrastructure automation, and Python for application logic, demonstrating efficient handling of database requests in a cloud environment.
-
----
-```
-
-This code block format is suitable for copying directly into a `README.md` file. It includes all the necessary sections and commands for setting up and running your project.
